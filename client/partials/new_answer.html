@@ -1,0 +1,15 @@
+<div ng-controller="NewAnswerController">
+	{{specificQuestion.data}}
+	<p><a href="#/">Home</a> | <a href="#/question/{{specificQuestion.data._id}}">Go back to question</a></p>
+	<p><a href="#/logout">Logout</a></p>
+	<h1>{{specificQuestion.data.question}}</h1>
+	<p>{{specificQuestion.data.questionDescription}}</p>
+	<form name='newAnswerForm'>
+		<label>Answer: <input type="text" name="newAnswer" ng-model="newAnswer.answer" ng-minlength='10' required></label>
+		<label>Supporting Details for your answer (optional): <input type="text" name="newAnswerDescription" ng-model="newAnswer.answerDescription"><a href="#/"><button>Cancel</button></a><button ng-click="addNewAnswer()">Add</button></label>
+	</form>
+	<div ng-messages = "newAnswerForm.newAnswer.$error">
+		<p ng-message="minlength">Answer must be atleast 10 characters long</p>
+		<p ng-message="required">Answer is required</p>
+	</div>
+</div>

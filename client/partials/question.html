@@ -1,0 +1,20 @@
+<div ng-controller="ViewQuestionController">
+	{{specificQuestion.data}}
+	<p><a href="#/">Home</a> | <a href="#/question/{{specificQuestion.data._id}}/new_answer">Answer this question</a></p>
+	<p><a href="#/logout">Logout</a></p>
+	<h1>{{specificQuestion.data.question}}</h1>
+	<p>{{specificQuestion.data.questionDescription}}</p>
+	<p>Search: <input type="text" name="" ng-model="answerSearch"></p>
+	<table>
+		<tr ng-repeat="answer in specificQuestionAnswers.data | filter: answerSearch track by $index">
+			<td>
+				<h3>{{answer.answereeName}}:</h3>
+				<h2>{{answer.answer}}</h2>
+				<h2>{{answer.answerDescription}}</h2>
+			</td>
+			<td>
+				<p>{{answer.answerLikes}} likes<button ng-click="likeAnswer(answer)">Like</button></p>
+			</td>
+		</tr>
+	</table>
+</div>

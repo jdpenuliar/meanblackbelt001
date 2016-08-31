@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MEAN</title>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular-route.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular-messages.js"></script>
+	<script>
+		var qaAppModule = angular.module("qaApp",["ngRoute","ngMessages"]);
+		//routes
+		qaAppModule.config(function($routeProvider){
+			$routeProvider
+			.when("/",{
+				templateUrl: "partials/dashboard.html"
+			})
+			.when("/index",{
+				templateUrl: "partials/login.html"
+			})
+			.when("/logout",{
+				redirectTo: "/index"
+			})
+			.when("/new_question",{
+				templateUrl: "partials/new_question.html"
+			})
+			.when("/question/:id/new_answer",{
+				templateUrl: "partials/new_answer.html"
+			})
+			.when("/question/:id",{
+				templateUrl: "partials/question.html"
+			})
+			.otherwise({
+				redirectTo: "/"
+			});
+
+		});
+		qaAppModule.factory("usersFactory",function($http){
+			var factory = {};
+			var users = [];
+			var activeUser = {};
+			factory.index = function(callback){
+				$http.get("/users").then(function(output){
+					users = output;
+					callback(users);
+				});
+			}
+			factory.login = function(info,callback){
+				$http.get("/users/"+info.userName).then(function(output){
+					activeUser = output;
+					callback(activeUser);
+				});
+			}
+
+			factory.logout = function(callback){
+				$http.post("/users/"+activeUser.data._id+"/logout").then(function(output){
+					activeUser = {};
+					callback();
+				});
+				
+			}
+			factory.create = function(info, callback){
+				$http.post("/users", info).then(function(output){
+					users = output;
+					callback(users);
+				});
+			}
+			factory.getLoggedIn = function(callback){
+				callback(activeUser);
+			}
+			return factory;
+		});
+		qaAppModule.factory("questionsFactory",function($http){
+			var factory = {};
+			var questions = [];
+			var specificQuestion = [];
+			var activeUser = {};
+			factory.getQuestions = function(callback){
+				$http.get("/questions").then(function(output){
+					questions = output;
+					callback(questions);
+				});
+			}
+			factory.getSpecificQuestion = function(info,callback){
+				$http.get("/questions/"+info.id).then(function(output){
+					specificQuestion = output;
+					callback(specificQuestion);
+				});
+			}
+			factory.create = function(info, callback){
+				$http.post("/questions", info).then(function(output){
+					questions = output;
+					callback(questions);
+				});
+			}
+			factory.delete = function(info,callback){
+				$http.delete("/questions/"+info._id).then(function(output){
+					questions = output;
+					callback(questions);
+				});
+			}
+			return factory;
+		});
+		qaAppModule.factory("answersFactory",function($http){
+			var factory = {};
+			var answers = [];
+			var specificQuestion = [];
+			var activeUser = {};
+			factory.getAnswersIds = function(info,callback){
+				$http.get("/answers/question/"+info.id).then(function(output){
+					answers = output;
+					callback(answers);
+				});
+			}
+			factory.likeAnswerId = function(info,callback){
+				$http.post("/answers/question/"+info._id+"/like").then(function(output){
+					answers = output;
+					callback(answers);
+				});
+			}
+			factory.create = function(info, callback){
+				$http.post("/answers/question/"+info.questionId.id, info).then(function(output){
+					questions = output;
+					callback(questions);
+				});
+			}
+			return factory;
+		});
+		qaAppModule.controller("UsersController",function($scope,usersFactory,$location){
+			usersFactory.getLoggedIn(function(data){
+				$scope.activeUser = data;
+				if(Object.keys($scope.activeUser).length === 0){
+					$location.url("/index");
+				}else{
+					$location.url("/");
+				}
+			});
+			$scope.addNewUser = function(){
+				usersFactory.create($scope.newUser, function(){
+					usersFactory.login($scope.newUser, function(data){
+						$scope.activeUser = data;
+						$location.url("/");
+					});
+				});
+			}
+			$scope.logout = function(){
+				usersFactory.logout(function(){
+					$location.url("/index");
+				});
+			}
+		});
+		qaAppModule.controller("DashboardController",function($scope,usersFactory,questionsFactory,$location,$routeParams){
+			usersFactory.getLoggedIn(function(data){
+				$scope.activeUser = data;
+			});
+			questionsFactory.getQuestions(function(data){
+				$scope.questions = data;
+			});
+			if(Object.keys($scope.activeUser).length === 0){
+				$location.url("/index");
+			}else{
+				$location.url("/");
+			}
+			$scope.logout = function(){
+				usersFactory.logout(function(){
+					$location.url("/index");
+				});
+			}
+
+			$scope.removeQuestion = function(data){
+				questionsFactory.delete(data, function(data){
+					questionsFactory.getQuestions(function(data){
+						$scope.questions = data;
+					});
+				});
+			}
+		});
+		qaAppModule.controller("NewQuestionController",function($scope,usersFactory,questionsFactory,$location){
+			usersFactory.getLoggedIn(function(data){
+					$scope.activeUser = data;
+				});
+			questionsFactory.getQuestions(function(data){
+				$scope.questions = data;
+			});		
+
+			$scope.addNewQuestion = function(){
+				$scope.newQuestion.activeUser = $scope.activeUser;
+				questionsFactory.create($scope.newQuestion,function(data){
+					$location.url("/");
+				});
+			}
+
+			if(Object.keys($scope.activeUser).length === 0){
+				$location.url("/index");
+			}
+			$scope.logout = function(){
+				usersFactory.logout(function(){
+					$location.url("/index");
+				});
+			}
+		});
+		qaAppModule.controller("NewAnswerController",function($scope,usersFactory,questionsFactory,$location,$routeParams,answersFactory){
+			usersFactory.getLoggedIn(function(data){
+				$scope.activeUser = data;
+			});
+			questionsFactory.getQuestions(function(data){
+				$scope.questions = data;
+			});
+			if(Object.keys($routeParams).length !== 0 && Object.keys($scope.activeUser).length !== 0){
+				questionsFactory.getSpecificQuestion($routeParams, function(data){
+					$scope.specificQuestion = data;
+				});
+			}else{
+				$location.url("/index");
+			}
+			$scope.addNewAnswer = function(){
+				$scope.newAnswer.activeUser = $scope.activeUser;
+				$scope.newAnswer.questionId = $routeParams;
+				answersFactory.create($scope.newAnswer,function(data){
+					$location.url("/");
+				});
+			}
+			$scope.logout = function(){
+				usersFactory.logout(function(){
+					$location.url("/index");
+				});
+			}
+		});
+		qaAppModule.controller("ViewQuestionController",function($scope,usersFactory,questionsFactory,$location,$routeParams,answersFactory){
+			usersFactory.getLoggedIn(function(data){
+					$scope.activeUser = data;
+				});
+			questionsFactory.getQuestions(function(data){
+				$scope.questions = data;
+			});
+
+			if(Object.keys($routeParams).length !== 0 && Object.keys($scope.activeUser).length !== 0){
+				questionsFactory.getSpecificQuestion($routeParams, function(data){
+					$scope.specificQuestion = data;
+					answersFactory.getAnswersIds($routeParams,function(data){
+						$scope.specificQuestionAnswers = data;
+					});
+				});
+			}else{
+				$location.url("/index");
+
+			}
+			
+			
+			$scope.addNewQuestion = function(){
+				$scope.newQuestion.activeUser = $scope.activeUser;
+				questionsFactory.create($scope.newQuestion,function(data){
+					$location.url("/");
+				});
+			}
+			
+			$scope.likeAnswer = function(answer){
+				answersFactory.likeAnswerId(answer, function(data){
+					answersFactory.getAnswersIds($routeParams,function(data){
+						$scope.specificQuestionAnswers = data;
+					});
+				});
+			}
+			$scope.logout = function(){
+				usersFactory.logout(function(){
+					$location.url("/index");
+				});
+			}
+		});
+	</script>
+</head>
+<body ng-app="qaApp">
+	<!-- <a href="#/">Orders</a> | <a href="#/customers">Customers</a> -->
+	<div ng-view="">
+	</div>
+</body>
+</html>

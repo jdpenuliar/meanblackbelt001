@@ -1,0 +1,13 @@
+<div ng-controller="NewQuestionController">
+	{{questions}}
+	<p><a href="#/">Home</a> | <a href="#/logout">Logout</a></p>
+	
+	<form name='newQuestionForm'>
+		<label>Question: <input type="text" name="newQuestion" ng-model="newQuestion.question" ng-minlength='10' required></label>
+		<label>Description (optional): <input type="text" name="newQuestionDescription" ng-model="newQuestion.questionDescription"><a href="#/"><button>Cancel</button></a><button ng-click="addNewQuestion()">Add</button></label>
+	</form>
+	<div ng-messages = "newQuestionForm.newQuestion.$error">
+		<p ng-message="minlength">Question must be atleast 10 characters long</p>
+		<p ng-message="required">Question is required</p>
+	</div>
+</div>

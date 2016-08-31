@@ -1,0 +1,19 @@
+{
+  "name": "meanblackbelt001",
+  "version": "0.0.1",
+  "description": "meanblackbelt001",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "JDPenuliar",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "ejs": "^2.5.1",
+    "express": "^4.14.0",
+    "mongoose": "^4.5.9",
+    "sanitize-html": "^1.13.0",
+    "socket.io": "^1.4.8"
+  }
+}

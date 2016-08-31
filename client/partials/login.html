@@ -1,0 +1,10 @@
+<div ng-controller="UsersController">
+	<p>QA</p>
+	<form name='userForm'>
+		<label>Name name: <input type="text" name="newUserName" ng-model="newUser.userName"><button ng-click="addNewUser()" required>Enter</button></label>
+	</form>
+	<div ng-messages = "userForm.newUserName.$error">
+		<p ng-message="minlength">The customer name is too short.</p>
+		<p ng-message="required">The customer name is required.</p>
+	</div>
+</div>
